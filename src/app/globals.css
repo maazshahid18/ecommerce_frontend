@@ -1,26 +1,29 @@
-@import "tailwindcss";
+/* app/globals.css */
 
+@import "tailwindcss"; /* Keep this import */
+
+/* Remove the @theme inline block and @media (prefers-color-scheme: dark) */
+/* Define your fixed light theme colors here */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffffff; /* Always white */
+  --foreground: #171717; /* Always very dark gray */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Remove the @theme inline block if you're not actively using it for other purposes */
+/* If you were using font variables, you'd define them here directly */
 
 body {
+  /* Use the fixed variables */
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* You can also set a base background here if you don't want it transparent */
+  /* e.g., background-color: #f7fafc; */
+}
+
+/* Any other global styles */
+html, body {
+  min-height: 100vh; /* Ensure body takes full viewport height */
+  margin: 0;
+  padding: 0;
 }
