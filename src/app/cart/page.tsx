@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getCart, updateCartItemQuantity, removeCartItem, CartItem } from '../../../lib/cart';
+import Image from 'next/image';
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -15,25 +16,29 @@ export default function CartPage() {
 
   useEffect(() => {
     loadCart();
+    // Listen for changes in localStorage from other tabs/windows
     window.addEventListener('storage', loadCart);
     return () => {
+      // Clean up the event listener when the component unmounts
       window.removeEventListener('storage', loadCart);
     };
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
 
   const handleQuantityChange = (
     item: CartItem,
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const newQuantity = Number(e.target.value);
+    // Use both productId and selectedVariantValue to uniquely identify the item
     updateCartItemQuantity(item.productId, item.selectedVariantValue, newQuantity);
-    loadCart();
+    loadCart(); // Reload cart after update
   };
 
   const handleRemoveItem = (item: CartItem) => {
     if (confirm(`Are you sure you want to remove ${item.productName} from your cart?`)) {
+      // Use both productId and selectedVariantValue to uniquely identify the item
       removeCartItem(item.productId, item.selectedVariantValue);
-      loadCart();
+      loadCart(); // Reload cart after removal
     }
   };
 
@@ -47,7 +52,7 @@ export default function CartPage() {
     return { subtotal, totalQuantity, total: subtotal };
   };
 
-  const { subtotal, totalQuantity, total } = calculateCartTotals();
+  const { subtotal, totalQuantity } = calculateCartTotals();
 
   const handleProceedToCheckout = () => {
     router.push('/checkout');
@@ -69,10 +74,22 @@ export default function CartPage() {
       ) : (
         <>
           <div className="space-y-6 mb-8">
-            {cartItems.map((item, index) => (
-              <div key={`<span class="math-inline">\{item\.productId\}\-</span>{item.selectedVariantValue || index}`} className="flex flex-col md:flex-row items-center bg-gray-50 p-4 rounded-lg shadow-sm">
-                {item.imageUrl && ( 
-                  <img src={item.imageUrl} alt={item.productName} className="w-24 h-24 object-cover rounded-md mr-4 mb-4 md:mb-0" />
+            {cartItems.map((item) => ( // Removed 'index' from here
+              <div
+                // FIX: Correctly generate a unique key using template literals
+                // Combine productId with selectedVariantValue to ensure uniqueness for variants.
+                // If selectedVariantValue is undefined, it defaults to an empty string.
+                key={`${item.productId}-${item.selectedVariantValue || ''}`}
+                className="flex flex-col md:flex-row items-center bg-gray-50 p-4 rounded-lg shadow-sm"
+              >
+                {item.imageUrl && (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    width={96} // Equivalent to w-24 (96px)
+                    height={96} // Equivalent to h-24 (96px)
+                    className="object-cover rounded-md mr-4 mb-4 md:mb-0"
+                  />
                 )}
                 <div className="flex-grow text-left mb-4 md:mb-0 md:mr-4">
                   <h3 className="text-lg font-semibold text-gray-800">{item.productName}</h3>
@@ -82,9 +99,10 @@ export default function CartPage() {
                   <p className="text-md font-bold text-blue-600">${item.productPrice.toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <label htmlFor={`quantity-${index}`} className="sr-only">Quantity for {item.productName}</label>
+                  {/* It's good practice to make the ID here unique too, using the same key logic */}
+                  <label htmlFor={`quantity-${item.productId}-${item.selectedVariantValue || ''}`} className="sr-only">Quantity for {item.productName}</label>
                   <select
-                    id={`quantity-${index}`}
+                    id={`quantity-${item.productId}-${item.selectedVariantValue || ''}`}
                     value={item.quantity}
                     onChange={(e) => handleQuantityChange(item, e)}
                     className="p-2 border border-gray-300 rounded-md text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation'; 
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { Product, ProductVariant, CartItem, addProductToCart } from '../../../../lib/cart';
 
@@ -31,19 +32,20 @@ export default function ProductDetailPage() {
           }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const rawData: any = await response.json();
-        const fetchedProduct: Product = {
-          ...rawData,
-          price: parseFloat(rawData.price),
-        };
+const rawData = await response.json() as Product;        
+const fetchedProduct: Product = {
+  ...rawData,
+  price: parseFloat(String(rawData.price)), 
+};
         setProduct(fetchedProduct);
 
         if (fetchedProduct.variants && fetchedProduct.variants.length > 0) {
           setSelectedVariant(fetchedProduct.variants[0]);
         }
-      } catch (e: any) {
-        setError(`Failed to fetch product: ${e.message}`);
-        console.error("Failed to fetch product:", e);
+      }  catch (e: unknown) {
+  const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+  setError(`Failed to fetch product: ${message}`);
+  console.error("Failed to fetch product:", e);
       } finally {
         setLoading(false);
       }
@@ -110,7 +112,7 @@ export default function ProductDetailPage() {
         <div className="text-center bg-white p-8 rounded-2xl shadow-xl max-w-md">
           <div className="text-slate-400 text-6xl mb-4">📦</div>
           <h1 className="text-2xl font-bold text-slate-600 mb-2">Product Not Found</h1>
-          <p className="text-slate-500">The product you're looking for doesn't exist.</p>
+          <p className="text-slate-500">The product you&apos;re looking for doesn&apos;t exist.</p>
         </div>
       </div>
     );
@@ -143,9 +145,11 @@ export default function ProductDetailPage() {
                   <div className="text-slate-400 text-4xl">📷</div>
                 </div>
               )}
-              <img
+              <Image
                 src={product.imageUrl || 'https://via.placeholder.com/600x600?text=No+Image+Available'}
                 alt={product.name}
+                 width={300} // Provide appropriate width
+                height={200}
                 className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 onLoad={() => setImageLoaded(true)}
               />

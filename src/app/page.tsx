@@ -2,7 +2,22 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Product } from '../../lib/cart';
+import Image from 'next/image';
+// Ensure Product and ProductVariant are imported from the correct path
+import { Product } from '../../lib/cart'; // <--- UPDATED IMPORT
+
+// Define the structure of the raw data received from the API
+interface RawProductData {
+  // Assuming the raw data from /product doesn't have variants or inventory directly
+  id: number; // Corrected based on your Product interface
+  name: string;
+  description: string;
+  price: string | number; // Price might come as a string, e.g., "19.99"
+  imageUrl?: string; // Optional if not all products have an image
+  // If your backend *does* return variants/inventory here, add them to this interface:
+  // variants?: any[]; // Or ProductVariant[] if the backend provides them in this format
+  // inventory?: number;
+}
 
 type SortOption = 'none' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc';
 
@@ -10,7 +25,7 @@ export default function LandingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortOption, setSortOption] = useState<SortOption>('none'); 
+  const [sortOption, setSortOption] = useState<SortOption>('none');
 
   useEffect(() => {
     async function fetchProducts() {
@@ -20,14 +35,26 @@ export default function LandingPage() {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const rawData: any[] = await response.json();
+
+        const rawData: RawProductData[] = await response.json();
+
         const fetchedProducts: Product[] = rawData.map(item => ({
+          // Spread existing properties from rawData
           ...item,
-          price: parseFloat(item.price),
+          // Ensure price is parsed as a number.
+          price: parseFloat(item.price as string),
+          // FIX: Add missing variants and inventory with default values
+          // If your backend *does* provide these in the /product endpoint,
+          // adjust RawProductData and map them directly instead of default values.
+          variants: [], // Default to an empty array of variants
+          inventory: 0, // Default to 0, or a more appropriate initial value
+          // Also, ensure 'id' is a number based on your Product interface:
+          id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id, // Parse if string, otherwise use as is
         }));
         setProducts(fetchedProducts);
-      } catch (e: any) {
-        setError(`Failed to fetch products: ${e.message}`);
+      }  catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'An unexpected error occurred';
+        setError(`Failed to fetch products: ${message}`);
         console.error("Failed to fetch products:", e);
       } finally {
         setLoading(false);
@@ -38,7 +65,7 @@ export default function LandingPage() {
   }, []);
 
   const sortedProducts = useMemo(() => {
-    let sortableProducts = [...products]; 
+    const sortableProducts = [...products];
 
     switch (sortOption) {
       case 'price-asc':
@@ -58,7 +85,7 @@ export default function LandingPage() {
         break;
     }
     return sortableProducts;
-  }, [products, sortOption]); 
+  }, [products, sortOption]);
 
   const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSortOption(event.target.value as SortOption);
@@ -103,12 +130,18 @@ export default function LandingPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-        {sortedProducts.map((productItem) => ( 
+        {sortedProducts.map((productItem) => (
           <Link key={productItem.id} href={`/products/${productItem.id}`} passHref>
             <div
               className="border rounded-lg p-4 shadow-md cursor-pointer transition duration-300 ease-in-out border-gray-200 hover:shadow-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-500"
             >
-              <img src={productItem.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'} alt={productItem.name} className="w-full h-48 object-cover rounded-md mb-4" />
+              <Image
+                src={productItem.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}
+                alt={productItem.name}
+                width={300} // Provide appropriate width
+                height={200} // Provide appropriate height
+                className="w-full h-48 object-cover rounded-md mb-4"
+              />
               <h2 className="text-xl font-semibold text-gray-800 mb-2">{productItem.name}</h2>
               <p className="text-lg font-bold text-blue-600 mb-2">${productItem.price.toFixed(2)}</p>
               <p className="text-sm text-gray-600">{productItem.description.substring(0, 100)}...</p>

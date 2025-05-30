@@ -182,13 +182,19 @@ export default function CheckoutPage() {
       clearCart();
       router.push(`/thank-you?status=${result.status}&orderNumber=${result.orderNumber || ''}`);
 
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      setApiError(error.message || 'An unexpected error occurred during checkout.');
-      router.push(`/thank-you?status=failed&message=${encodeURIComponent(error.message || 'Transaction could not be completed.')}`);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error: unknown) {
+  let errorMessage = 'An unexpected error occurred during checkout.';
+
+  if (error instanceof Error) {
+    console.error('Checkout error:', error);
+    errorMessage = error.message;
+  }
+
+  setApiError(errorMessage);
+  router.push(`/thank-you?status=failed&message=${encodeURIComponent(errorMessage)}`);
+} finally {
+  setLoading(false);
+}
   };
 
   if (cartItems.length === 0 && !loading && !apiError) {
