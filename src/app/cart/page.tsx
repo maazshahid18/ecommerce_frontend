@@ -16,29 +16,25 @@ export default function CartPage() {
 
   useEffect(() => {
     loadCart();
-    // Listen for changes in localStorage from other tabs/windows
     window.addEventListener('storage', loadCart);
     return () => {
-      // Clean up the event listener when the component unmounts
       window.removeEventListener('storage', loadCart);
     };
-  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+  }, []); 
 
   const handleQuantityChange = (
     item: CartItem,
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const newQuantity = Number(e.target.value);
-    // Use both productId and selectedVariantValue to uniquely identify the item
     updateCartItemQuantity(item.productId, item.selectedVariantValue, newQuantity);
-    loadCart(); // Reload cart after update
+    loadCart(); 
   };
 
   const handleRemoveItem = (item: CartItem) => {
     if (confirm(`Are you sure you want to remove ${item.productName} from your cart?`)) {
-      // Use both productId and selectedVariantValue to uniquely identify the item
       removeCartItem(item.productId, item.selectedVariantValue);
-      loadCart(); // Reload cart after removal
+      loadCart(); 
     }
   };
 
@@ -74,11 +70,8 @@ export default function CartPage() {
       ) : (
         <>
           <div className="space-y-6 mb-8">
-            {cartItems.map((item) => ( // Removed 'index' from here
+            {cartItems.map((item) => ( 
               <div
-                // FIX: Correctly generate a unique key using template literals
-                // Combine productId with selectedVariantValue to ensure uniqueness for variants.
-                // If selectedVariantValue is undefined, it defaults to an empty string.
                 key={`${item.productId}-${item.selectedVariantValue || ''}`}
                 className="flex flex-col md:flex-row items-center bg-gray-50 p-4 rounded-lg shadow-sm"
               >
@@ -86,8 +79,8 @@ export default function CartPage() {
                   <Image
                     src={item.imageUrl}
                     alt={item.productName}
-                    width={96} // Equivalent to w-24 (96px)
-                    height={96} // Equivalent to h-24 (96px)
+                    width={96} 
+                    height={96} 
                     className="object-cover rounded-md mr-4 mb-4 md:mb-0"
                   />
                 )}

@@ -1,11 +1,9 @@
-// app/thank-you/thank-you-content.tsx
-'use client'; // This component remains a client component
+'use client'; 
 
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
-// Make sure these types are defined consistently across your project
-interface OrderItemDetail { // Renamed from OrderDetails for individual items
+interface OrderItemDetail { 
   productName: string;
   selectedVariantName?: string;
   selectedVariantValue?: string;
@@ -16,7 +14,7 @@ interface OrderItemDetail { // Renamed from OrderDetails for individual items
 interface OrderDetails {
   id: number;
   orderNumber: string;
-  items?: OrderItemDetail[]; // Use an array of items for order summary
+  items?: OrderItemDetail[]; 
   subtotal: number;
   total: number;
   fullName: string;
@@ -33,7 +31,7 @@ interface OrderDetails {
 }
 
 
-export default function ThankYouPageContent() { // Renamed component
+export default function ThankYouPageContent() { 
   const searchParams = useSearchParams();
   const status = searchParams?.get('status');
   const orderNumberFromUrl = searchParams?.get('orderNumber');
@@ -54,17 +52,12 @@ export default function ThankYouPageContent() { // Renamed component
           }
           const rawData = await response.json();
 
-          // Assuming rawData from backend matches OrderDetails structure closely
-          // and already has 'items' as an array for the order details endpoint
+       
           const data: OrderDetails = {
             ...rawData,
-            // Ensure numeric fields are parsed if they come as strings
             subtotal: parseFloat(rawData.subtotal),
             total: parseFloat(rawData.total),
-            // The product-specific fields (productName, etc.) should come nested in 'items' array.
-            // If your backend /orders/:orderNumber endpoint still returns them flattened,
-            // you might need to adjust the OrderDetails interface and the mapping here
-            // to correctly display multiple items. For now, assuming it returns an 'items' array.
+            
           };
 
           setOrderDetails(data);
@@ -123,9 +116,8 @@ export default function ThankYouPageContent() { // Renamed component
 
           <div className="bg-gray-50 p-6 rounded-lg mb-6 border border-gray-200 text-left">
             <h2 className="text-2xl font-semibold text-gray-700 mb-4">Order Summary</h2>
-            {/* Display items as an array */}
             {orderDetails.items?.map((item, index) => (
-              <div key={index} className="mb-2"> {/* Use index as key if no stable ID for order items */}
+              <div key={index} className="mb-2"> 
                 <p className="text-gray-700"><strong>Product:</strong> {item.productName}</p>
                 {item.selectedVariantValue && (
                   <p className="text-gray-700 ml-4"><strong>Variant:</strong> {item.selectedVariantName}: {item.selectedVariantValue}</p>
