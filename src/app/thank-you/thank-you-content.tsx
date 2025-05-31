@@ -48,7 +48,7 @@ export default function ThankYouPageContent() { // Renamed component
       if (orderNumberFromUrl) {
         try {
           setLoading(true);
-          const response = await fetch(`http://localhost:3000/orders/${orderNumberFromUrl}`);
+          const response = await fetch(`https://ecommercebackend-production-7ae0.up.railway.app/orders/${orderNumberFromUrl}`);
           if (!response.ok) {
             throw new Error(`Failed to fetch order details: ${response.statusText}`);
           }
