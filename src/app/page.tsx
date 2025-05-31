@@ -31,7 +31,7 @@ export default function LandingPage() {
     async function fetchProducts() {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3000/product');
+        const response = await fetch('https://ecommercebackend-production-7ae0.up.railway.app/product');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

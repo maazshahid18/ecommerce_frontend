@@ -25,7 +25,7 @@ export default function ProductDetailPage() {
 
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:3000/product/${id}`);
+        const response = await fetch(`https://ecommercebackend-production-7ae0.up.railway.app/product/${id}`);
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error("Product not found.");
