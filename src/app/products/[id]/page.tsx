@@ -139,7 +139,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/50">
+<div className="bg-white/80 backdrop-blur-md sticky top-0 z-[90] border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <Link
@@ -159,7 +159,7 @@ export default function ProductDetailPage() {
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
                 />
               </svg>
-              <span className="font-medium">Back to Products</span>
+              <span className="font-medium z-0">Back to Products</span>
             </Link>
           </div>
         </div>
