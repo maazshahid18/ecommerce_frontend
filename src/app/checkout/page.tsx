@@ -1,12 +1,14 @@
+// ecommerce-frontend/app/checkout/page.tsx
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { getCart, clearCart, CartItem } from '../../../lib/cart';
+import { getCart, clearCart, CartItem } from '../../../lib/cart'; // Adjust import path if needed
 import OrderSummaryCard from '../../../components/checkout/OrderSummaryCard';
 import PaymentDetailsForm from '../../../components/checkout/PaymentDetailsForm';
 import CustomerInfoForm from '../../../components/checkout/CustomerInfoForm';
 
+// Define the FormData interface
 interface FormData {
   fullName: string;
   email: string;
@@ -20,6 +22,7 @@ interface FormData {
   cvv: string;
 }
 
+// Define the TransactionResponse interface (adjusted for multiple items)
 interface TransactionResponse {
   status: 'approved' | 'declined' | 'failed';
   orderNumber?: string;
@@ -183,68 +186,77 @@ export default function CheckoutPage() {
       router.push(`/thank-you?status=${result.status}&orderNumber=${result.orderNumber || ''}`);
 
     } catch (error: unknown) {
-  let errorMessage = 'An unexpected error occurred during checkout.';
+      let errorMessage = 'An unexpected error occurred during checkout.';
 
-  if (error instanceof Error) {
-    console.error('Checkout error:', error);
-    errorMessage = error.message;
-  }
+      if (error instanceof Error) {
+        console.error('Checkout error:', error);
+        errorMessage = error.message;
+      }
 
-  setApiError(errorMessage);
-  router.push(`/thank-you?status=failed&message=${encodeURIComponent(errorMessage)}`);
-} finally {
-  setLoading(false);
-}
+      setApiError(errorMessage);
+      router.push(`/thank-you?status=failed&message=${encodeURIComponent(errorMessage)}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // The main container itself has the dark background from `globals.css` or the parent layout.
+  // The 'container mx-auto...' div below will be the themed card.
   if (cartItems.length === 0 && !loading && !apiError) {
-    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">Redirecting to shopping...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-300">Redirecting to shopping...</div>;
   }
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">Processing your order...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-300">Processing your order...</div>;
   }
 
   return (
-    <div className="container mx-auto my-12 p-8 border border-gray-300 rounded-lg shadow-md bg-white max-w-4xl">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Checkout</h1>
+    <div className="min-h-screen bg-gray-950 text-black py-12 flex items-center justify-center"> {/* Set page background and center content */}
+      <div className="container mx-auto p-8 border border-gray-700 rounded-lg shadow-2xl bg-white max-w-4xl"> {/* Themed card container */}
+        <h1 className="text-3xl font-bold text-center text-teal-500 mb-8">Checkout</h1>
 
-      <OrderSummaryCard cartItems={cartItems} total={total} />
+        {/* Order Summary Card - this component will also need its internal styling updated */}
+        <OrderSummaryCard cartItems={cartItems} total={total} />
 
-      <form onSubmit={handleSubmit} className="mt-8">
-        <CustomerInfoForm
-          formData={{
-            fullName: formData.fullName,
-            email: formData.email,
-            phoneNumber: formData.phoneNumber,
-            address: formData.address,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zipCode,
-          }}
-          errors={errors}
-          handleChange={handleChange}
-        />
+        <form onSubmit={handleSubmit} className="mt-8">
+          {/* Customer Info Form - this component will also need its internal styling updated */}
+          <CustomerInfoForm
+            formData={{
+              fullName: formData.fullName,
+              email: formData.email,
+              phoneNumber: formData.phoneNumber,
+              address: formData.address,
+              city: formData.city,
+              state: formData.state,
+              zipCode: formData.zipCode,
+            }}
+            errors={errors}
+            handleChange={handleChange}
+          />
 
-        <PaymentDetailsForm
-          formData={{
-            cardNumber: formData.cardNumber,
-            expiryDate: formData.expiryDate,
-            cvv: formData.cvv,
-          }}
-          errors={errors}
-          handleChange={handleChange}
-        />
+          {/* Payment Details Form - this component will also need its internal styling updated */}
+          <PaymentDetailsForm
+            formData={{
+              cardNumber: formData.cardNumber,
+              expiryDate: formData.expiryDate,
+              cvv: formData.cvv,
+            }}
+            errors={errors}
+            handleChange={handleChange}
+          />
 
-        {apiError && <p className="text-red-600 text-center mt-4 font-bold">{apiError}</p>}
+          {/* API Error Message */}
+          {apiError && <p className="text-red-500 text-center mt-4 font-bold">{apiError}</p>}
 
-        <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer mt-5 w-full transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          {loading ? 'Processing...' : 'Place Order'}
-        </button>
-      </form>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer mt-5 w-full transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+            disabled={loading}
+          >
+            {loading ? 'Processing...' : 'Place Order'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

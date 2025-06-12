@@ -43,7 +43,7 @@ const PaymentDetailsForm: React.FC<PaymentDetailsFormProps> = ({ formData, error
           placeholder="MM/YY"
         />
         <FormInput
-          label="CVV (111 for success, 222 for failure, 333 for error)"
+          label="CVV (111 for success, 222 for failure)"
           id="cvv"
           name="cvv"
           type="text"

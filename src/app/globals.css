@@ -13,12 +13,10 @@
 /* If you were using font variables, you'd define them here directly */
 
 body {
-  /* Use the fixed variables */
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  /* You can also set a base background here if you don't want it transparent */
-  /* e.g., background-color: #f7fafc; */
+  margin: 0;
+  font-family: sans-serif;
+  background-color: #1a1a1a; /* A very dark gray background for the entire page */
+  color: #e0e0e0; /* Default light text color */
 }
 
 /* Any other global styles */

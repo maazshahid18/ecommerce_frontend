@@ -1,8 +1,10 @@
+// ecommerce-frontend/app/cart/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+// Adjust import path if CartPage is directly under app, assuming lib is at root
 import { getCart, updateCartItemQuantity, removeCartItem, CartItem } from '../../../lib/cart';
 import Image from 'next/image';
 
@@ -16,11 +18,12 @@ export default function CartPage() {
 
   useEffect(() => {
     loadCart();
-    window.addEventListener('storage', loadCart);
+    // Subscribe to cart changes to keep UI updated if cart is modified in another tab/window
+    const unsubscribe = window.addEventListener('storage', loadCart); // Assuming `subscribeToCartChanges` is not directly used here
     return () => {
       window.removeEventListener('storage', loadCart);
     };
-  }, []); 
+  }, []);
 
   const handleQuantityChange = (
     item: CartItem,
@@ -28,13 +31,13 @@ export default function CartPage() {
   ) => {
     const newQuantity = Number(e.target.value);
     updateCartItemQuantity(item.productId, item.selectedVariantValue, newQuantity);
-    loadCart(); 
+    loadCart();
   };
 
   const handleRemoveItem = (item: CartItem) => {
     if (confirm(`Are you sure you want to remove ${item.productName} from your cart?`)) {
       removeCartItem(item.productId, item.selectedVariantValue);
-      loadCart(); 
+      loadCart();
     }
   };
 
@@ -45,7 +48,7 @@ export default function CartPage() {
       subtotal += item.productPrice * item.quantity;
       totalQuantity += item.quantity;
     });
-    return { subtotal, totalQuantity, total: subtotal };
+    return { subtotal, totalQuantity, total: subtotal }; // For simplicity, total equals subtotal
   };
 
   const { subtotal, totalQuantity } = calculateCartTotals();
@@ -55,14 +58,14 @@ export default function CartPage() {
   };
 
   return (
-    <div className="container mx-auto my-12 p-8 border border-gray-300 rounded-lg shadow-md bg-white max-w-4xl">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Your Shopping Cart</h1>
+    <div className="container mx-auto my-12 p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-900 text-gray-200 max-w-4xl"> {/* Dark container */}
+      <h1 className="text-3xl font-bold text-center text-teal-500 mb-8">Your Shopping Cart</h1> {/* Teal heading */}
 
       {cartItems.length === 0 ? (
         <div className="text-center py-10">
-          <p className="text-xl text-gray-600 mb-6">Your cart is empty.</p>
+          <p className="text-xl text-gray-400 mb-6">Your cart is empty.</p> {/* Lighter text */}
           <Link href="/" passHref>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out">
+            <button className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out"> {/* Teal button */}
               Start Shopping
             </button>
           </Link>
@@ -70,35 +73,34 @@ export default function CartPage() {
       ) : (
         <>
           <div className="space-y-6 mb-8">
-            {cartItems.map((item) => ( 
+            {cartItems.map((item) => (
               <div
                 key={`${item.productId}-${item.selectedVariantValue || ''}`}
-                className="flex flex-col md:flex-row items-center bg-gray-50 p-4 rounded-lg shadow-sm"
+                className="flex flex-col md:flex-row items-center bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700" 
               >
                 {item.imageUrl && (
                   <Image
                     src={item.imageUrl}
                     alt={item.productName}
-                    width={96} 
-                    height={96} 
-                    className="object-cover rounded-md mr-4 mb-4 md:mb-0"
+                    width={96}
+                    height={96}
+                    className="object-cover rounded-md mr-4 mb-4 md:mb-0 border border-gray-600" /* Subtle image border */
                   />
                 )}
                 <div className="flex-grow text-left mb-4 md:mb-0 md:mr-4">
-                  <h3 className="text-lg font-semibold text-gray-800">{item.productName}</h3>
+                  <h3 className="text-lg font-semibold text-gray-50">{item.productName}</h3> {/* Light product name */}
                   {item.selectedVariantValue && (
-                    <p className="text-sm text-gray-600">{item.selectedVariantName}: {item.selectedVariantValue}</p>
+                    <p className="text-sm text-gray-400">{item.selectedVariantName}: {item.selectedVariantValue}</p> 
                   )}
-                  <p className="text-md font-bold text-blue-600">${item.productPrice.toFixed(2)}</p>
+                  <p className="text-md font-bold text-teal-400">${item.productPrice.toFixed(2)}</p> {/* Teal price */}
                 </div>
                 <div className="flex items-center gap-4">
-                  {/* It's good practice to make the ID here unique too, using the same key logic */}
                   <label htmlFor={`quantity-${item.productId}-${item.selectedVariantValue || ''}`} className="sr-only">Quantity for {item.productName}</label>
                   <select
                     id={`quantity-${item.productId}-${item.selectedVariantValue || ''}`}
                     value={item.quantity}
                     onChange={(e) => handleQuantityChange(item, e)}
-                    className="p-2 border border-gray-300 rounded-md text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="p-2 border border-gray-600 rounded-md text-gray-200 bg-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500" /* Darker select, light text, teal focus */
                   >
                     {[...Array(10)].map((_, i) => (
                       <option key={i + 1} value={i + 1}>
@@ -108,7 +110,7 @@ export default function CartPage() {
                   </select>
                   <button
                     onClick={() => handleRemoveItem(item)}
-                    className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-md transition duration-300 ease-in-out text-sm"
+                    className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-md transition duration-300 ease-in-out text-sm shadow-sm" /* Darker red remove button */
                   >
                     Remove
                   </button>
@@ -117,20 +119,20 @@ export default function CartPage() {
             ))}
           </div>
 
-          <div className="bg-gray-100 p-6 rounded-lg text-right mb-8">
-            <p className="text-lg font-semibold text-gray-700 mb-2">Total Items: {totalQuantity}</p>
-            <p className="text-2xl font-bold text-gray-800">Cart Subtotal: <span className="text-blue-600">${subtotal.toFixed(2)}</span></p>
+          <div className="bg-gray-800 p-6 rounded-lg text-right mb-8 border border-gray-700"> {/* Darker summary, subtle border */}
+            <p className="text-lg font-semibold text-gray-50 mb-2">Total Items: <span className="text-teal-400">{totalQuantity}</span></p> {/* Light text, teal quantity */}
+            <p className="text-2xl font-bold text-gray-50">Cart Subtotal: <span className="text-teal-500">${subtotal.toFixed(2)}</span></p> {/* Light text, teal subtotal */}
           </div>
 
           <div className="flex justify-end gap-4">
             <Link href="/" passHref>
-              <button className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out">
+              <button className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out shadow-md"> {/* Dark gray continue shopping */}
                 Continue Shopping
               </button>
             </Link>
             <button
               onClick={handleProceedToCheckout}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out"
+              className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out shadow-md" /* Teal proceed to checkout */
             >
               Proceed to Checkout
             </button>

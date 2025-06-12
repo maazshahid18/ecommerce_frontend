@@ -20,7 +20,7 @@ interface CustomerInfoFormProps {
 const CustomerInfoForm: React.FC<CustomerInfoFormProps> = ({ formData, errors, handleChange }) => {
   return (
     <>
-      <h2 className="text-2xl font-semibold text-gray-700 mb-6">Customer Information</h2>
+      <h2 className="text-2xl font-semibold text-white mb-6">Customer Information</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
         <FormInput
           label="Full Name"

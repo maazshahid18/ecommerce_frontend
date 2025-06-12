@@ -1,22 +1,19 @@
+// ecommerce-frontend/app/page.tsx
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-// Ensure Product and ProductVariant are imported from the correct path
-import { Product } from '../../lib/cart'; // <--- UPDATED IMPORT
+import { Product } from '../../lib/cart';
 
-// Define the structure of the raw data received from the API
 interface RawProductData {
-  // Assuming the raw data from /product doesn't have variants or inventory directly
-  id: number; // Corrected based on your Product interface
+  id: number;
   name: string;
   description: string;
-  price: string | number; // Price might come as a string, e.g., "19.99"
-  imageUrl?: string; // Optional if not all products have an image
-  // If your backend *does* return variants/inventory here, add them to this interface:
-  // variants?: any[]; // Or ProductVariant[] if the backend provides them in this format
-  // inventory?: number;
+  price: string | number;
+  imageUrl?: string;
+  variants?: any[];
+  inventory?: number;
 }
 
 type SortOption = 'none' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc';
@@ -31,6 +28,7 @@ export default function LandingPage() {
     async function fetchProducts() {
       try {
         setLoading(true);
+        // Use your deployed backend URL
         const response = await fetch('https://ecommercebackend-production-7ae0.up.railway.app/product');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -39,17 +37,11 @@ export default function LandingPage() {
         const rawData: RawProductData[] = await response.json();
 
         const fetchedProducts: Product[] = rawData.map(item => ({
-          // Spread existing properties from rawData
           ...item,
-          // Ensure price is parsed as a number.
           price: parseFloat(item.price as string),
-          // FIX: Add missing variants and inventory with default values
-          // If your backend *does* provide these in the /product endpoint,
-          // adjust RawProductData and map them directly instead of default values.
-          variants: [], // Default to an empty array of variants
-          inventory: 0, // Default to 0, or a more appropriate initial value
-          // Also, ensure 'id' is a number based on your Product interface:
-          id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id, // Parse if string, otherwise use as is
+          variants: item.variants || [],
+          inventory: item.inventory || 0,
+          id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
         }));
         setProducts(fetchedProducts);
       }  catch (e: unknown) {
@@ -82,6 +74,7 @@ export default function LandingPage() {
         break;
       case 'none':
       default:
+        // Keep original order or apply a default stable sort if desired
         break;
     }
     return sortableProducts;
@@ -90,6 +83,9 @@ export default function LandingPage() {
   const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSortOption(event.target.value as SortOption);
   };
+
+  const featuredProducts = useMemo(() => products.slice(0, 3), [products]);
+
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">Loading products...</div>;
@@ -104,16 +100,62 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="container mx-auto my-12 p-8 border border-gray-300 rounded-lg shadow-md bg-white max-w-6xl">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 pb-4 border-b border-gray-200">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4 md:mb-0">Our Products</h1>
+    <div className="container mx-auto my-12 p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-900 text-gray-200"> {/* Darker container, stronger shadow, light text */}
+      
+     
+
+      {/* Hero Section */}
+      <section className="text-center py-16 px-4 mb-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg shadow-inner"> {/* Darker gradient */}
+        <h2 className="text-5xl font-extrabold text-gray-50 mb-4"> {/* Lighter heading text */}
+          Discover Your Next Favorite Item
+        </h2>
+        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto"> {/* Lighter paragraph text */}
+          Explore our curated selection of high-quality products, hand-picked just for you.
+        </p>
+        <Link href="#featured-products" passHref>
+          <button className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out"> {/* Teal button */}
+            Shop Now
+          </button>
+        </Link>
+      </section>
+
+      {featuredProducts.length > 0 && (
+        <section id="featured-products" className="mb-12">
+          <h2 className="text-4xl font-extrabold text-teal-500 mb-8 text-center">Featured Collection</h2> {/* Teal heading */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {featuredProducts.map((productItem) => (
+              <Link key={productItem.id} href={`/products/${productItem.id}`} passHref>
+                <div className="group flex flex-col items-center border rounded-lg p-6 shadow-md cursor-pointer transition duration-300 ease-in-out bg-gray-800 border-gray-700 hover:shadow-xl hover:border-teal-500 hover:ring-2 hover:ring-teal-500 transform hover:-translate-y-1"> {/* Darker card, teal hover */}
+                  <Image
+                    src={productItem.imageUrl || 'https://via.placeholder.com/300x200/663399/FFFFFF?text=Featured+Image'}
+                    alt={productItem.name}
+                    width={300}
+                    height={200}
+                    className="w-full h-48 object-cover rounded-md mb-4 group-hover:scale-105 transform transition duration-300 ease-in-out"
+                  />
+                  <h3 className="text-2xl font-bold text-gray-50 mb-2 text-center">{productItem.name}</h3> {/* Light text */}
+                  <p className="text-xl font-bold text-teal-400 mb-3">${productItem.price.toFixed(2)}</p> {/* Teal price */}
+                  <p className="text-sm text-gray-300 mb-4 text-center">{productItem.description.substring(0, 90)}...</p> {/* Lighter description */}
+                  <button className="mt-auto w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-4 rounded-md transition duration-300 ease-in-out"> {/* Teal button */}
+                    View Details
+                  </button>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* All Products section */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 pt-4 border-t border-gray-700"> {/* Added top border for separation */}
+        <h2 className="text-3xl font-bold text-gray-50 mb-4 md:mb-0">All Products</h2> {/* Light heading */}
         <div className="flex items-center space-x-4">
-          <label htmlFor="sort-by" className="text-gray-700 font-medium">Sort by:</label>
+          <label htmlFor="sort-by" className="text-gray-300 font-medium">Sort by:</label> {/* Lighter label text */}
           <select
             id="sort-by"
             value={sortOption}
             onChange={handleSortChange}
-            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 bg-gray-800 text-gray-200" 
           >
             <option value="none">Default</option>
             <option value="price-asc">Price: Low to High</option>
@@ -121,31 +163,26 @@ export default function LandingPage() {
             <option value="name-asc">Name: A-Z</option>
             <option value="name-desc">Name: Z-A</option>
           </select>
-          <Link href="/cart" passHref>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out">
-              View Cart
-            </button>
-          </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {sortedProducts.map((productItem) => (
           <Link key={productItem.id} href={`/products/${productItem.id}`} passHref>
             <div
-              className="border rounded-lg p-4 shadow-md cursor-pointer transition duration-300 ease-in-out border-gray-200 hover:shadow-lg hover:border-blue-500 hover:ring-2 hover:ring-blue-500"
+              className="border rounded-lg p-4 shadow-md cursor-pointer transition duration-300 ease-in-out bg-gray-800 border-gray-700 hover:shadow-lg hover:border-teal-500 hover:ring-2 hover:ring-teal-500" 
             >
               <Image
                 src={productItem.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}
                 alt={productItem.name}
-                width={300} // Provide appropriate width
-                height={200} // Provide appropriate height
+                width={300}
+                height={200}
                 className="w-full h-48 object-cover rounded-md mb-4"
               />
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">{productItem.name}</h2>
-              <p className="text-lg font-bold text-blue-600 mb-2">${productItem.price.toFixed(2)}</p>
-              <p className="text-sm text-gray-600">{productItem.description.substring(0, 100)}...</p>
-              <button className="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
+              <h3 className="text-xl font-semibold text-gray-50 mb-2">{productItem.name}</h3> {/* Light text */}
+              <p className="text-lg font-bold text-teal-400 mb-2">${productItem.price.toFixed(2)}</p> {/* Teal price */}
+              <p className="text-sm text-gray-300">{productItem.description.substring(0, 100)}...</p> {/* Lighter description */}
+              <button className="mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out"> {/* Teal button */}
                 View Details
               </button>
             </div>
