@@ -1,10 +1,8 @@
-// ecommerce-frontend/app/cart/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-// Adjust import path if CartPage is directly under app, assuming lib is at root
 import { getCart, updateCartItemQuantity, removeCartItem, CartItem } from '../../../lib/cart';
 import Image from 'next/image';
 
@@ -18,12 +16,11 @@ export default function CartPage() {
 
   useEffect(() => {
     loadCart();
-    // Subscribe to cart changes to keep UI updated if cart is modified in another tab/window
-    const unsubscribe = window.addEventListener('storage', loadCart); // Assuming `subscribeToCartChanges` is not directly used here
+    window.addEventListener('storage', loadCart);
     return () => {
       window.removeEventListener('storage', loadCart);
     };
-  }, []);
+  }, []); 
 
   const handleQuantityChange = (
     item: CartItem,
@@ -31,13 +28,13 @@ export default function CartPage() {
   ) => {
     const newQuantity = Number(e.target.value);
     updateCartItemQuantity(item.productId, item.selectedVariantValue, newQuantity);
-    loadCart();
+    loadCart(); 
   };
 
   const handleRemoveItem = (item: CartItem) => {
     if (confirm(`Are you sure you want to remove ${item.productName} from your cart?`)) {
       removeCartItem(item.productId, item.selectedVariantValue);
-      loadCart();
+      loadCart(); 
     }
   };
 
@@ -48,7 +45,7 @@ export default function CartPage() {
       subtotal += item.productPrice * item.quantity;
       totalQuantity += item.quantity;
     });
-    return { subtotal, totalQuantity, total: subtotal }; // For simplicity, total equals subtotal
+    return { subtotal, totalQuantity, total: subtotal };
   };
 
   const { subtotal, totalQuantity } = calculateCartTotals();
@@ -57,7 +54,7 @@ export default function CartPage() {
     router.push('/checkout');
   };
 
-  return (
+   return (
     <div className="container mx-auto my-12 p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-900 text-gray-200 max-w-4xl"> {/* Dark container */}
       <h1 className="text-3xl font-bold text-center text-teal-500 mb-8">Your Shopping Cart</h1> {/* Teal heading */}
 

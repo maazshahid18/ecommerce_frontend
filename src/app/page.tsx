@@ -4,15 +4,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Product } from '../../lib/cart';
+// Ensure Product and ProductVariant are imported from the correct path
+import { Product, ProductVariant } from '../../lib/cart'; // <--- IMPORT ProductVariant HERE
 
+// Define the structure of the raw data received from the API
 interface RawProductData {
   id: number;
   name: string;
   description: string;
   price: string | number;
   imageUrl?: string;
-  variants?: any[];
+  // FIX: Explicitly type variants as ProductVariant[]
+  variants?: ProductVariant[]; // <--- CHANGED FROM any[] to ProductVariant[]
   inventory?: number;
 }
 
@@ -28,7 +31,6 @@ export default function LandingPage() {
     async function fetchProducts() {
       try {
         setLoading(true);
-        // Use your deployed backend URL
         const response = await fetch('https://ecommercebackend-production-7ae0.up.railway.app/product');
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -39,7 +41,7 @@ export default function LandingPage() {
         const fetchedProducts: Product[] = rawData.map(item => ({
           ...item,
           price: parseFloat(item.price as string),
-          variants: item.variants || [],
+          variants: item.variants || [], // This is now directly assignable as both are ProductVariant[] (or undefined)
           inventory: item.inventory || 0,
           id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
         }));
@@ -74,7 +76,6 @@ export default function LandingPage() {
         break;
       case 'none':
       default:
-        // Keep original order or apply a default stable sort if desired
         break;
     }
     return sortableProducts;
@@ -88,21 +89,28 @@ export default function LandingPage() {
 
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">Loading products...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-300 bg-gray-950">Loading products...</div>;
   }
 
   if (error) {
-    return <div className="flex items-center justify-center min-h-screen text-lg text-red-600">Error: {error}</div>;
+    return <div className="flex items-center justify-center min-h-screen text-lg text-red-500 bg-gray-950">Error: {error}</div>;
   }
 
   if (products.length === 0) {
-    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-700">No products available.</div>;
+    return <div className="flex items-center justify-center min-h-screen text-lg text-gray-300 bg-gray-950">No products available.</div>;
   }
 
   return (
-    <div className="container mx-auto my-12 p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-900 text-gray-200"> {/* Darker container, stronger shadow, light text */}
+    <div className="container mx-auto my-12 p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-900 text-gray-200"> {/* Main container: Dark background, strong shadow, light text */}
       
-     
+      {/* Top right View Cart button (remains as is from previous version, as it is outside Navbar scope for this page) */}
+      <div className="flex justify-end items-center mb-8 pb-4 border-b border-gray-700"> {/* Dark border */}
+        <Link href="/cart" passHref>
+          <button className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out"> {/* Teal button */}
+            View Cart
+          </button>
+        </Link>
+      </div>
 
       {/* Hero Section */}
       <section className="text-center py-16 px-4 mb-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg shadow-inner"> {/* Darker gradient */}
@@ -147,15 +155,15 @@ export default function LandingPage() {
       )}
 
       {/* All Products section */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6 pt-4 border-t border-gray-700"> {/* Added top border for separation */}
-        <h2 className="text-3xl font-bold text-gray-50 mb-4 md:mb-0">All Products</h2> {/* Light heading */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 pt-4 border-t border-gray-700">
+        <h2 className="text-3xl font-bold text-gray-50 mb-4 md:mb-0">All Products</h2>
         <div className="flex items-center space-x-4">
-          <label htmlFor="sort-by" className="text-gray-300 font-medium">Sort by:</label> {/* Lighter label text */}
+          <label htmlFor="sort-by" className="text-gray-300 font-medium">Sort by:</label>
           <select
             id="sort-by"
             value={sortOption}
             onChange={handleSortChange}
-            className="p-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 bg-gray-800 text-gray-200" 
+            className="p-2 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 bg-gray-800 text-gray-200"
           >
             <option value="none">Default</option>
             <option value="price-asc">Price: Low to High</option>
@@ -170,7 +178,7 @@ export default function LandingPage() {
         {sortedProducts.map((productItem) => (
           <Link key={productItem.id} href={`/products/${productItem.id}`} passHref>
             <div
-              className="border rounded-lg p-4 shadow-md cursor-pointer transition duration-300 ease-in-out bg-gray-800 border-gray-700 hover:shadow-lg hover:border-teal-500 hover:ring-2 hover:ring-teal-500" 
+              className="border rounded-lg p-4 shadow-md cursor-pointer transition duration-300 ease-in-out bg-gray-800 border-gray-700 hover:shadow-lg hover:border-teal-500 hover:ring-2 hover:ring-teal-500"
             >
               <Image
                 src={productItem.imageUrl || 'https://via.placeholder.com/300x200?text=No+Image'}
@@ -179,10 +187,10 @@ export default function LandingPage() {
                 height={200}
                 className="w-full h-48 object-cover rounded-md mb-4"
               />
-              <h3 className="text-xl font-semibold text-gray-50 mb-2">{productItem.name}</h3> {/* Light text */}
-              <p className="text-lg font-bold text-teal-400 mb-2">${productItem.price.toFixed(2)}</p> {/* Teal price */}
-              <p className="text-sm text-gray-300">{productItem.description.substring(0, 100)}...</p> {/* Lighter description */}
-              <button className="mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out"> {/* Teal button */}
+              <h3 className="text-xl font-semibold text-gray-50 mb-2">{productItem.name}</h3>
+              <p className="text-lg font-bold text-teal-400 mb-2">${productItem.price.toFixed(2)}</p>
+              <p className="text-sm text-gray-300">{productItem.description.substring(0, 100)}...</p>
+              <button className="mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
                 View Details
               </button>
             </div>

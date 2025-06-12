@@ -1,7 +1,7 @@
 // ecommerce-frontend/app/products/[id]/page.tsx
 'use client';
 
-import { useState, useEffect, useMemo } from 'react'; // useMemo might not be strictly needed here, but keeping it if you had plans for it
+import { useState, useEffect } from 'react'; // useMemo might not be strictly needed here, but keeping it if you had plans for it
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
