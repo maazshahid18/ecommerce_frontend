@@ -15,6 +15,9 @@ const nextConfig = {
       "neemans.com",
       "thehouseofrare.com",
       "images.puma.com",
+      'images.unsplash.com',
+      'pinterest.com',
+      'stock.adobe.com',
     ],
   },
   // Other Next.js configurations can go here

@@ -1,31 +1,65 @@
 // ecommerce-frontend/app/page.tsx
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react'; // Added useCallback
 import Link from 'next/link';
 import Image from 'next/image';
-// Ensure Product and ProductVariant are imported from the correct path
-import { Product, ProductVariant } from '../../lib/cart'; // <--- IMPORT ProductVariant HERE
+import { Product, ProductVariant } from '../../lib/cart';
 
-// Define the structure of the raw data received from the API
 interface RawProductData {
   id: number;
   name: string;
   description: string;
   price: string | number;
   imageUrl?: string;
-  // FIX: Explicitly type variants as ProductVariant[]
-  variants?: ProductVariant[]; // <--- CHANGED FROM any[] to ProductVariant[]
+  variants?: ProductVariant[];
   inventory?: number;
 }
 
 type SortOption = 'none' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc';
+
+const banners = [
+  {
+    src: '/clothes.jpg',
+    alt: 'Summer Collection Sale',
+    link: '#featured-products', // Link to featured products or a specific category
+    heading: 'Summer Sale: Up to 50% Off!',
+    description: 'Discover the hottest trends this season.',
+  },
+  {
+    src: '/gadgets.jpg',
+    alt: 'New Arrivals Electronics',
+    link: '/', // Link to home or new arrivals page
+    heading: 'Brand New Electronics',
+    description: 'Explore the latest gadgets and gear.',
+  },
+  {
+    src: '/fashion.jpg',
+    alt: 'Footwear Collection',
+    link: '/', // Link to a footwear category
+    heading: 'Step Up Your Style',
+    description: 'Comfort and fashion in every pair.',
+  },
+];
 
 export default function LandingPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>('none');
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Function to go to the next slide
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prevSlide) => (prevSlide + 1) % banners.length);
+  }, []);
+
+  // Set up automatic slide scrolling
+  useEffect(() => {
+    const slideInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+    return () => clearInterval(slideInterval); // Clean up interval on component unmount
+  }, [nextSlide]); // Re-run effect if nextSlide changes (due to useCallback, it won't)
+
 
   useEffect(() => {
     async function fetchProducts() {
@@ -41,7 +75,7 @@ export default function LandingPage() {
         const fetchedProducts: Product[] = rawData.map(item => ({
           ...item,
           price: parseFloat(item.price as string),
-          variants: item.variants || [], // This is now directly assignable as both are ProductVariant[] (or undefined)
+          variants: item.variants || [],
           inventory: item.inventory || 0,
           id: typeof item.id === 'string' ? parseInt(item.id, 10) : item.id,
         }));
@@ -101,39 +135,66 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="container mx-auto my-12 p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-900 text-gray-200"> {/* Main container: Dark background, strong shadow, light text */}
+    <div className="container mx-auto my-12 p-8 border border-gray-700 rounded-lg shadow-2xl bg-gray-900 text-gray-200">
       
       {/* Top right View Cart button (remains as is from previous version, as it is outside Navbar scope for this page) */}
-      <div className="flex justify-end items-center mb-8 pb-4 border-b border-gray-700"> {/* Dark border */}
-        <Link href="/cart" passHref>
-          <button className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 text-lg rounded-md cursor-pointer transition duration-300 ease-in-out"> {/* Teal button */}
-            View Cart
-          </button>
-        </Link>
-      </div>
+      
 
-      {/* Hero Section */}
-      <section className="text-center py-16 px-4 mb-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg shadow-inner"> {/* Darker gradient */}
-        <h2 className="text-5xl font-extrabold text-gray-50 mb-4"> {/* Lighter heading text */}
-          Discover Your Next Favorite Item
-        </h2>
-        <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto"> {/* Lighter paragraph text */}
-          Explore our curated selection of high-quality products, hand-picked just for you.
-        </p>
-        <Link href="#featured-products" passHref>
-          <button className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out"> {/* Teal button */}
-            Shop Now
-          </button>
-        </Link>
+      {/* NEW: Image Slider (replaces Hero Section) */}
+      <section className="relative w-full h-80 md:h-96 lg:h-[450px] overflow-hidden rounded-lg shadow-xl mb-12 border border-gray-700">
+        {banners.map((banner, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+              index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            <Image
+              src={banner.src}
+              alt={banner.alt}
+              fill
+              style={{ objectFit: 'cover' }}
+              priority={index === 0} // Prioritize loading the first image
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            <div className="absolute inset-0  flex flex-col items-center justify-center text-center p-4">
+              <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-3 drop-shadow-lg leading-tight">
+                {banner.heading}
+              </h2>
+              <p className="text-lg md:text-xl text-gray-200 max-w-2xl drop-shadow-md">
+                {banner.description}
+              </p>
+              <Link href={banner.link} passHref>
+                <button className="mt-6 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 text-lg md:text-xl rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:-translate-y-1">
+                  Shop Now
+                </button>
+              </Link>
+            </div>
+          </div>
+        ))}
+
+        {/* Slider Navigation Dots */}
+        <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center space-x-2">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                index === currentSlide ? 'bg-teal-500 w-8' : 'bg-gray-400 hover:bg-gray-300'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            ></button>
+          ))}
+        </div>
       </section>
 
       {featuredProducts.length > 0 && (
         <section id="featured-products" className="mb-12">
-          <h2 className="text-4xl font-extrabold text-teal-500 mb-8 text-center">Featured Collection</h2> {/* Teal heading */}
+          <h2 className="text-4xl font-extrabold text-teal-500 mb-8 text-center">Featured Collection</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredProducts.map((productItem) => (
               <Link key={productItem.id} href={`/products/${productItem.id}`} passHref>
-                <div className="group flex flex-col items-center border rounded-lg p-6 shadow-md cursor-pointer transition duration-300 ease-in-out bg-gray-800 border-gray-700 hover:shadow-xl hover:border-teal-500 hover:ring-2 hover:ring-teal-500 transform hover:-translate-y-1"> {/* Darker card, teal hover */}
+                <div className="group flex flex-col items-center border rounded-lg p-6 shadow-md cursor-pointer transition duration-300 ease-in-out bg-gray-800 border-gray-700 hover:shadow-xl hover:border-teal-500 hover:ring-2 hover:ring-teal-500 transform hover:-translate-y-1">
                   <Image
                     src={productItem.imageUrl || 'https://via.placeholder.com/300x200/663399/FFFFFF?text=Featured+Image'}
                     alt={productItem.name}
@@ -141,10 +202,10 @@ export default function LandingPage() {
                     height={200}
                     className="w-full h-48 object-cover rounded-md mb-4 group-hover:scale-105 transform transition duration-300 ease-in-out"
                   />
-                  <h3 className="text-2xl font-bold text-gray-50 mb-2 text-center">{productItem.name}</h3> {/* Light text */}
-                  <p className="text-xl font-bold text-teal-400 mb-3">${productItem.price.toFixed(2)}</p> {/* Teal price */}
-                  <p className="text-sm text-gray-300 mb-4 text-center">{productItem.description.substring(0, 90)}...</p> {/* Lighter description */}
-                  <button className="mt-auto w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-4 rounded-md transition duration-300 ease-in-out"> {/* Teal button */}
+                  <h3 className="text-2xl font-bold text-gray-50 mb-2 text-center">{productItem.name}</h3>
+                  <p className="text-xl font-bold text-teal-400 mb-3">${productItem.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-300 mb-4 text-center">{productItem.description.substring(0, 90)}...</p>
+                  <button className="mt-auto w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-4 rounded-md transition duration-300 ease-in-out">
                     View Details
                   </button>
                 </div>
